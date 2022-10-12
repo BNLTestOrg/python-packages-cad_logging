@@ -1,0 +1,8 @@
+#!/bin/bash
+PYTHON=`cat .pypath 2> /dev/null || echo "python3"`
+$PYTHON -m venv --system-site-packages venv
+source venv/bin/activate
+pip install -r requirements/production.txt
+echo "Virtual environment created in $PWD/venv"
+echo " and has been switched to the production setup"
+echo "Activate using '$PWD/venv/bin/activate[.csh|.fish]'"

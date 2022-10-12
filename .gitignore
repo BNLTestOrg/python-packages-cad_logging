@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+.pytest_cache/
+.idea/
+*.pyc
+.mypy_cache/
+build/
+.eggs/
+*.egg-info/
+cad_logging/version.py

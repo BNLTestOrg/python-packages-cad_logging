@@ -1,0 +1,5 @@
+variables:
+  PYTHON_VERSION: python3
+  PACKAGE_NAME: cad_logging
+
+include: 'https://gitlab.pbn.bnl.gov/sclark/ci-templates/-/raw/master/python-project.yml'

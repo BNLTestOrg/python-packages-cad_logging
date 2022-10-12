@@ -1,0 +1,5 @@
+{
+    "_template": "git@gitlab.pbn.bnl.gov:cookiecutters/python-lib.git",
+    "package_name": "cad_logging",
+    "setup_gitlab_project": true
+}
