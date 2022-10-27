@@ -58,14 +58,17 @@ def enable_exception_handler():
     sys.excepthook = logging_handler
 
 
-def enable_logging(enable_fs=True, fs_path=None, fs_level=logging.INFO, enable_db=True, db_level=logging.INFO):
+def enable_logging(enable_fs=True, fs_path=None, fs_level=logging.INFO, enable_db=True, db_level=logging.INFO, console_level=None):
     """Enables the default C-AD logging configuration for Python programs
     Defaults to database logging, filesystem logging optional
 
     Args:
-        enable_db (bool, optional): Enables logging to database server. Defaults to True.
         enable_fs (bool, optional): Enables logging to filesystem text file. Defaults to False.
         fs_path (str, optional): Path to log file used if enable_fs=True. Defaults to /operations/app_store/<program>/diagnostics/message.
+        fs_level (int, optional): Log level to use for filesystem handler. Defaults to INFO.
+        enable_db (bool, optional): Enables logging to database server. Defaults to True.
+        db_level (int, optional): Log level to use for database handler. Defaults to INFO.
+        console_level (int, optional): Log level to use for console handler. Defaults to WARNING.
     """
     script_name = os.path.basename(sys.argv[0])
     if script_name == "__main__.py":
@@ -96,8 +99,12 @@ def enable_logging(enable_fs=True, fs_path=None, fs_level=logging.INFO, enable_d
         db_handler.setLevel(db_level)
         logging.root.addHandler(db_handler)
 
+    if console_level is None:
+        console_level = os.environ.get("LOGLEVEL", "WARNING")
+        console_level = logging.getLevelName(console_level)
+        
     console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.WARNING)
+    console_handler.setLevel(console_level)
     console_handler.setFormatter(formatter)
 
     logging.root.setLevel(logging.DEBUG)
@@ -106,5 +113,5 @@ def enable_logging(enable_fs=True, fs_path=None, fs_level=logging.INFO, enable_d
     enable_exception_handler()
 
 
-__all__ = ["LogServerHandler", "enable_exception_handler", "enable_logging"]
+__all__ = ["enable_logging"]
 
