@@ -5,9 +5,38 @@ import socket
 import sys
 from contextlib import suppress
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 from urllib.parse import urljoin
 
 import requests
+
+
+class CustomRotatingFileHandler(RotatingFileHandler):
+    def __init__(
+        self, filename, mode="a", maxBytes=0, encoding=None, delay=False
+    ):
+        self.last_backup_cnt = 0
+        super().__init__(
+            filename=filename,
+            mode=mode,
+            maxBytes=maxBytes,
+            backupCount=0,
+            encoding=encoding,
+            delay=delay,
+        )
+
+    # override
+    def doRollover(self):
+        if self.stream:
+            self.stream.close()
+            self.stream = None
+        # my code starts here
+        self.last_backup_cnt += 1
+        nextName = "%s.%d" % (self.baseFilename, self.last_backup_cnt)
+        self.rotate(self.baseFilename, nextName)
+        # my code ends here
+        if not self.delay:
+            self.stream = self._open()
 
 
 class LogServerHandler(logging.StreamHandler):
@@ -58,7 +87,14 @@ def enable_exception_handler():
     sys.excepthook = logging_handler
 
 
-def enable_logging(enable_fs=True, fs_path=None, fs_level=logging.INFO, enable_db=True, db_level=logging.INFO, console_level=None):
+def enable_logging(
+    enable_fs=True,
+    fs_path=None,
+    fs_level=logging.INFO,
+    enable_db=True,
+    db_level=logging.INFO,
+    console_level=None,
+):
     """Enables the default C-AD logging configuration for Python programs
     Defaults to database logging, filesystem logging optional
 
@@ -73,6 +109,7 @@ def enable_logging(enable_fs=True, fs_path=None, fs_level=logging.INFO, enable_d
     script_name = os.path.basename(sys.argv[0])
     if script_name == "__main__.py":
         import pathlib
+
         path = pathlib.Path(sys.argv[0])
         script_name = path.parts[-2]
 
@@ -89,7 +126,7 @@ def enable_logging(enable_fs=True, fs_path=None, fs_level=logging.INFO, enable_d
 
         os.makedirs(os.path.dirname(fs_path), exist_ok=True)
 
-        file_handler = logging.FileHandler(fs_path)
+        file_handler = CustomRotatingFileHandler(fs_path, maxBytes=1e6)
         file_handler.setLevel(fs_level)
         file_handler.setFormatter(formatter)
         logging.root.addHandler(file_handler)
@@ -102,7 +139,7 @@ def enable_logging(enable_fs=True, fs_path=None, fs_level=logging.INFO, enable_d
     if console_level is None:
         console_level = os.environ.get("LOGLEVEL", "WARNING")
         console_level = logging.getLevelName(console_level)
-        
+
     console_handler = logging.StreamHandler()
     console_handler.setLevel(console_level)
     console_handler.setFormatter(formatter)
@@ -114,4 +151,3 @@ def enable_logging(enable_fs=True, fs_path=None, fs_level=logging.INFO, enable_d
 
 
 __all__ = ["enable_logging"]
-
